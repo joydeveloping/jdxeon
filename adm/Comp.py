@@ -73,8 +73,8 @@ Return:
   true - if fortran compiler,
   false - if not fortran compiler.
 '''
-def If_F_Compiler(comp):
-    return (comp == "gfortan") or (comp == "ifort") or (comp == "mpifort");
+def Is_F_Compiler(comp):
+    return (comp == "gfortran") or (comp == "ifort") or (comp == "mpifort");
 
 #---------------------------------------------------------------------------------------------------
 # Script body.
@@ -108,6 +108,16 @@ if (Is_C_Compiler(arg_comp)):
             "cp ../../src_c/utils/* .",
             "cp ../../src_c/tests/%s/* ." % arg_test,
             "%s *.cpp %s -o %s.out" % (arg_comp, arg_opts, arg_test)]
+elif (Is_F_Compiler(arg_comp)):
+    cmds = ["cd anl_f",
+            "rm -rf %s" % arg_test,
+            "mkdir %s" % arg_test,
+            "cd %s" % arg_test,
+            "cp ../../src_f/utils/* .",
+            "cp ../../src_f/tests/%s/* ." % arg_test,
+            "%s utils_configure.f90 -c" % arg_comp,
+            "%s utils_time.f90 -c" % arg_comp,
+            "%s *.f90 %s -o %s.out" % (arg_comp, arg_opts, arg_test)]
 else:
     Lib.Debug.Error("wrong compiler " + arg_comp)
 
