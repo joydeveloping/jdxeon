@@ -16,6 +16,7 @@ contains
 !   Current time in seconds.
 !
 real(Configure_Long_Real) function time_DTime()
+implicit none
 
 integer(Configure_Long_Int) :: count, count_rate, count_max
 real(Configure_Long_Real)   :: tsec, rate
