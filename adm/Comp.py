@@ -42,9 +42,39 @@ def Print_Help():
     print "Usage:"
     print "  ./Comp.py -h - print this text"
     print "  ./Comp.py <test> <compiler> <options>, where"
-    print "    <test> - name of C/C++ test,"
+    print "    <test> - name of C/C++ or Fortran test,"
     print "    <compiler> - compiler name,"
     print "    <options> - string of additional options"
+
+#---------------------------------------------------------------------------------------------------
+
+'''
+Check if c compiler.
+
+Arguments:
+  comp - compiler
+
+Return:
+  true - if c compiler,
+  false - if not c compiler.
+'''
+def Is_C_Compiler(comp):
+    return (comp == "gcc") or (comp == "icc") or (comp == "mpicc");
+
+#---------------------------------------------------------------------------------------------------
+
+'''
+Check if fortran compiler.
+
+Arguments:
+  comp - compiler
+
+Return:
+  true - if fortran compiler,
+  false - if not fortran compiler.
+'''
+def If_F_Compiler(comp):
+    return (comp == "gfortan") or (comp == "ifort") or (comp == "mpifort");
 
 #---------------------------------------------------------------------------------------------------
 # Script body.
@@ -69,14 +99,19 @@ arg_opts = sys.argv[3]
 # Print information.
 print "Compilation : test = %s, comp = %s, opts = %s" % (arg_test, arg_comp, arg_opts)
 
-# Compilation.
-cmds = ["cd anl",
-        "rm -rf %s" % arg_test,
-        "mkdir %s" % arg_test,
-        "cd %s" % arg_test,
-        "cp ../../src_c/utils/* .",
-        "cp ../../src_c/tests/%s/* ." % arg_test,
-        "%s *.cpp %s -o %s.out" % (arg_comp, arg_opts, arg_test)]
+# Prepare compilation.
+if (Is_C_Compiler(arg_comp)):
+    cmds = ["cd anl_c",
+            "rm -rf %s" % arg_test,
+            "mkdir %s" % arg_test,
+            "cd %s" % arg_test,
+            "cp ../../src_c/utils/* .",
+            "cp ../../src_c/tests/%s/* ." % arg_test,
+            "%s *.cpp %s -o %s.out" % (arg_comp, arg_opts, arg_test)]
+else:
+    Lib.Debug.Error("wrong compiler " + arg_comp)
+
+# Run compilation.
 for cmd in cmds:
     print "  " + cmd
 cmd = reduce(lambda x, y: x + " ; " + y, cmds)
