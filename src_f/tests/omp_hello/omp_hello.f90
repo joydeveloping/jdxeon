@@ -27,16 +27,21 @@ implicit none
     print *, "Thread number     = ", OMP_Get_Thread_Num()
     !$OMP end parallel
 
-    ! Master.
-    !$OMP master
-    print *, "Master thread......"
-    !$OMP end master
-
     ! Check in parallel.
     print *, "Not parallel      : ", OMP_In_Parallel()
     !$OMP parallel
     print *, "    Parallel      : ", OMP_In_Parallel()
     !$OMP end parallel
+
+    ! Single section.
+    !$OMP single
+    print *, "Single section    : thread ", OMP_Get_Thread_Num()
+    !$OMP end single
+
+    ! Master.
+    !$OMP master
+    print *, "Master thread     : thread ", OMP_Get_Thread_Num()
+    !$OMP end master
 
 end program OMP_Hello
 
