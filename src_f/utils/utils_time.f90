@@ -30,4 +30,26 @@ end function time_DTime
 
 !---------------------------------------------------------------------------------------------------
 
+!
+! Sleep for a while but keep thread.
+!
+! Arguments:
+!   d - duration time (in seconds)
+!
+subroutine time_Sleep(d)
+implicit none
+real(Configure_Long_Real), intent(in) :: d
+
+real(Configure_Long_Real) :: s
+
+    s = time_DTime()
+
+    do while (time_DTime() - s < d)
+	! Do nothing.
+    end do
+
+end subroutine time_Sleep
+
+!---------------------------------------------------------------------------------------------------
+
 end module utils_time
