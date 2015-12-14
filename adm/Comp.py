@@ -59,7 +59,7 @@ Return:
   false - if not c compiler.
 '''
 def Is_C_Compiler(comp):
-    return (comp == "gcc") or (comp == "icc") or (comp == "mpicc");
+    return (comp == "gcc") or (comp == "g++") or (comp == "icc") or (comp == "mpicc");
 
 #---------------------------------------------------------------------------------------------------
 
