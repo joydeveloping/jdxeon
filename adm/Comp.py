@@ -12,6 +12,8 @@ Usage:
 '''
 
 import sys
+import os
+import os.path
 import subprocess
 import Lib.Debug
 
@@ -101,6 +103,10 @@ print "Compilation : test = %s, comp = %s, opts = %s" % (arg_test, arg_comp, arg
 
 # Prepare compilation.
 if (Is_C_Compiler(arg_comp)):
+
+    if (not os.path.isdir("anl_c")):
+        os.mkdir("anl_c")
+
     cmds = ["cd anl_c",
             "rm -rf %s" % arg_test,
             "mkdir %s" % arg_test,
@@ -108,7 +114,12 @@ if (Is_C_Compiler(arg_comp)):
             "cp ../../src_c/utils/* .",
             "cp ../../src_c/tests/%s/* ." % arg_test,
             "%s *.cpp %s -o %s.out" % (arg_comp, arg_opts, arg_test)]
+
 elif (Is_F_Compiler(arg_comp)):
+
+    if (not os.path.isdir("anl_f")):
+        os.mkdir("anl_f")
+
     cmds = ["cd anl_f",
             "rm -rf %s" % arg_test,
             "mkdir %s" % arg_test,
@@ -118,6 +129,7 @@ elif (Is_F_Compiler(arg_comp)):
             "%s utils_configure.f90 -c" % arg_comp,
             "%s utils_time.f90 -c" % arg_comp,
             "%s *.f90 %s -o %s.out" % (arg_comp, arg_opts, arg_test)]
+
 else:
     Lib.Debug.Error("wrong compiler " + arg_comp)
 

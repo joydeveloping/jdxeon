@@ -4,9 +4,32 @@
  */
 
 #include <stdio.h>
+#include <omp.h>
 
 #include "utils_math.h"
 #include "utils_time.h"
+
+/**
+ * \brief Count of master threads.
+ */
+#define MASTER_THREADS_COUNT 2
+
+/**
+ * \brief Total threads count.
+ */
+#define TOTAL_THREADS_COUNT 3
+
+/**
+ * \brief Check wrong threads numbers.
+ */
+#if (MASTER_THREADS_COUNT > TOTAL_THREADS_COUNT)
+#error "Error : MASTER_THREADS_COUNT > TOTAL_THREADS_COUNT"
+#endif
+
+/**
+ * \brief Count of free threads.
+ */
+static int Free_Threads_Count = TOTAL_THREADS_COUNT - MASTER_THREADS_COUNT;
 
 /**
  * \brief Parallel or sequental interval of program execution.
@@ -56,6 +79,35 @@ public:
     void Perfect_Exe()
     {
         time_Sleep(Perfect_Duration());
+    }
+
+    /**
+     * \brief Saturation execution.
+     */
+    void Saturation_Exe()
+    {
+        /*
+         * Wait needed threads count.
+         */
+        while (Free_Threads_Count < Threads_Count - 1)
+        {
+            ;
+        }
+
+#pragma omp critical
+
+        Free_Threads_Count -= (Threads_Count - 1);
+
+#pragma omp end critical
+
+        Perfect_Exe();
+
+#pragma omp critical
+
+        Free_Threads_Count += (Threads_Count - 1);
+
+#pragma omp_end critical
+
     }
 };
 
@@ -143,11 +195,16 @@ public:
     }
 
     /**
-     * \brief Simulation execution.
+     * \brief Saturation execution.
      */
-    void Simulation_Exe()
+    void Saturation_Exe()
     {
-        Perfect_Exe();
+        printf("Proc : saturation exe\n");
+
+        for (int i = 0; i < Count; i++)
+        {
+            Items[i]->Saturation_Exe();
+        }
     }
 };
 
@@ -224,6 +281,17 @@ public:
     }
 
     /**
+     * \brief Sequentional execution.
+     */
+    void Sequentional_Exe()
+    {
+        for (int i = 0; i < Count; i++)
+        {
+            Items[i]->Perfect_Exe();
+        }
+    }
+
+    /**
      * \brief Perfect execution.
      */
     void Perfect_Exe()
@@ -232,11 +300,20 @@ public:
     }
 
     /**
-     * \brief Simulation execution.
+     * \brief Saturation execution.
      */
-    void Simulation_Exe()
+    void Saturation_Exe()
     {
-        Perfect_Exe();
+        int master_threads_count = MASTER_THREADS_COUNT;
+        int thread_num = 0;
+
+#pragma omp parallel num_threads(master_threads_count) shared(Free_Threads_Count)
+
+        thread_num = omp_get_thread_num();
+        Items[thread_num]->Saturation_Exe();
+
+#pragma omp end parallel
+
     }
 };
 
@@ -255,9 +332,16 @@ int main()
     double texe = 0.0;
 
     /*
+     * OMP
+     */
+    omp_set_dynamic(true);
+    omp_set_nested(true);
+    printf("OMP : %d %d\n", omp_get_dynamic(), omp_get_nested());
+
+    /*
      * Create lntervals.
      */
-    ps = new Procs(2);
+    ps = new Procs(MASTER_THREADS_COUNT);
     p1 = ps->Set_Proc(0, 2);
     p1->Set_Interval(0, 1.0, 2);
     p1->Set_Interval(1, 1.0, 1);
@@ -272,16 +356,25 @@ int main()
     ps->Perfect_Exe();
     tstop = time_DTime();
     texe = tstop - tstart;
-    printf("Perfect duration    = %le\n", texe);
+    printf("Perfect duration      = %le\n", texe);
 
     /*
-     * Siumulation exe.
+     * Sequentional exe.
      */
     tstart = time_DTime();
-    ps->Simulation_Exe();
+    ps->Sequentional_Exe();
     tstop = time_DTime();
     texe = tstop - tstart;
-    printf("Simulation duration = %le\n", texe);
+    printf("Sequentional duration = %le\n", texe);
+
+    /*
+     * Saturation exe.
+     */
+    tstart = time_DTime();
+    ps->Saturation_Exe();
+    tstop = time_DTime();
+    texe = tstop - tstart;
+    printf("Saturation duration   = %le\n", texe);
 
     /*
      * Delete intervals.
